@@ -1,0 +1,8 @@
+pandas
+openpyxl
+numpy
+scikit-learn
+beautifulsoup4
+tldextract
+thefuzz
+python-Levenshtein
