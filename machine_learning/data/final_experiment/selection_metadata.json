@@ -1,0 +1,11 @@
+{
+  "repository": "phreshphish/phreshphish",
+  "split": "test",
+  "revision": "eca603e0ecd4f698f8d4d226c088659e72681239",
+  "seed": 20261123,
+  "per_class": 1500,
+  "selected": 3000,
+  "eligible_unique": 166861,
+  "selection": "smallest SHA256(seed:sample_sha256) ranks within each class",
+  "excluded": "all available preliminary PhreshPhish sample URLs/SHAs and CompPhish train+validation URLs"
+}
