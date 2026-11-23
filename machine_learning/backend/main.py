@@ -17,7 +17,7 @@ from feature_pipeline import extract_features
 
 app = FastAPI(title="Phishing Detection API")
 
-MODEL_DIR = ROOT / "results" / "final_experiment" / "frozen_models"
+MODEL_DIR = ROOT / "backend" / "models"
 
 models = {
     "url_only": joblib.load(
