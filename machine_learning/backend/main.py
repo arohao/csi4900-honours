@@ -33,7 +33,7 @@ schema = json.loads(
 )
 
 thresholds = json.loads(
-    (ROOT / "data" / "training_thresholds.json").read_text()
+    (ROOT / "backend" / "training_thresholds.json").read_text()
 )
 
 class ScanRequest(BaseModel):
@@ -77,8 +77,6 @@ def predict(request: ScanRequest):
             [[features[name] for name in feature_names]],
             columns=feature_names
         )
-
-        model = models[request.mode]
 
         prediction = int(model.predict(X)[0])
         score = float(
