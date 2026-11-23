@@ -72,7 +72,6 @@ def has_hidden_elements(soup):
 
     return hidden_flag
 
-
 def external_script_detected(soup, url):
     hostname = urlparse(url).hostname or ""
 
@@ -81,7 +80,6 @@ def external_script_detected(soup, url):
         for script in soup.find_all("script")
         if script.get("src")
     ))
-
 
 def detect_suspicious_js(html):
     patterns = [
@@ -313,239 +311,240 @@ def extract_html_features(html, url):
     features.update(extract_branding_features(soup, url))
     return features
 
-test_cases = [
-    {
-        "name": "Empty page",
-        "html": "<html><body></body></html>",
-        "url": "https://example.com",
-        "expected": {
-            "no_of_forms": 0,
-            "no_of_Images": 0,
-            "no_of_hyperlinks": 0,
-            "no_of_external_links": 0,
-            "no_of_internal_links": 0,
-            "no_of_null_links": 0,
-            "no_of_selfreference_links": 0,
-            "no_of_empty_links": 0,
-            "EmptyToExternalLinksRatio": 0
+if __name__ == "__main__":
+    test_cases = [
+        {
+            "name": "Empty page",
+            "html": "<html><body></body></html>",
+            "url": "https://example.com",
+            "expected": {
+                "no_of_forms": 0,
+                "no_of_Images": 0,
+                "no_of_hyperlinks": 0,
+                "no_of_external_links": 0,
+                "no_of_internal_links": 0,
+                "no_of_null_links": 0,
+                "no_of_selfreference_links": 0,
+                "no_of_empty_links": 0,
+                "EmptyToExternalLinksRatio": 0
+            }
+        },
+        {
+            "name": "Mixed links",
+            "html": """
+            <html>
+                <body>
+                    <a href="/home">Home</a>
+                    <a href="https://other.com">External</a>
+                    <a href="">Empty</a>
+                    <a href="#">Self</a>
+                    <img src="/logo.png">
+                    <form action="https://other.com/login"></form>
+                    <form></form>
+                </body>
+            </html>
+            """,
+            "url": "https://example.com/account",
+            "expected": {
+                "no_of_forms": 2,
+                "no_of_Images": 1,
+                "no_of_hyperlinks": 7,
+                "no_of_external_links": 2,
+                "no_of_internal_links": 2,
+                "no_of_null_links": 3,
+                "no_of_selfreference_links": 1,
+                "no_of_empty_links": 2,
+                "EmptyToExternalLinksRatio": 1.0
+            }
+        },
+        {
+            "name": "Internal links only",
+            "html": """
+            <html>
+                <body>
+                    <a href="/about">About</a>
+                    <a href="/contact">Contact</a>
+                    <img src="/image.png">
+                </body>
+            </html>
+            """,
+            "url": "https://example.com",
+            "expected": {
+                "no_of_forms": 0,
+                "no_of_Images": 1,
+                "no_of_hyperlinks": 3,
+                "no_of_external_links": 0,
+                "no_of_internal_links": 3,
+                "no_of_null_links": 0,
+                "no_of_selfreference_links": 0,
+                "no_of_empty_links": 0,
+                "EmptyToExternalLinksRatio": 0
+            }
         }
-    },
-    {
-        "name": "Mixed links",
-        "html": """
-        <html>
-            <body>
-                <a href="/home">Home</a>
-                <a href="https://other.com">External</a>
-                <a href="">Empty</a>
-                <a href="#">Self</a>
-                <img src="/logo.png">
-                <form action="https://other.com/login"></form>
-                <form></form>
-            </body>
-        </html>
-        """,
-        "url": "https://example.com/account",
-        "expected": {
-            "no_of_forms": 2,
-            "no_of_Images": 1,
-            "no_of_hyperlinks": 7,
-            "no_of_external_links": 2,
-            "no_of_internal_links": 2,
-            "no_of_null_links": 3,
-            "no_of_selfreference_links": 1,
-            "no_of_empty_links": 2,
-            "EmptyToExternalLinksRatio": 1.0
-        }
-    },
-    {
-        "name": "Internal links only",
-        "html": """
-        <html>
-            <body>
-                <a href="/about">About</a>
-                <a href="/contact">Contact</a>
-                <img src="/image.png">
-            </body>
-        </html>
-        """,
-        "url": "https://example.com",
-        "expected": {
-            "no_of_forms": 0,
-            "no_of_Images": 1,
-            "no_of_hyperlinks": 3,
-            "no_of_external_links": 0,
-            "no_of_internal_links": 3,
-            "no_of_null_links": 0,
-            "no_of_selfreference_links": 0,
-            "no_of_empty_links": 0,
-            "EmptyToExternalLinksRatio": 0
-        }
-    }
-]
+    ]
 
-for test in test_cases:
-    result = extract_html_features(test["html"], test["url"])
+    for test in test_cases:
+        result = extract_html_features(test["html"], test["url"])
 
-    passed = all(
-        result.get(feature) == expected
-        for feature, expected in test["expected"].items()
-    )
-
-    print(f"{test['name']}: {'PASS' if passed else 'FAIL'}")
-
-    if not passed:
-        print("Expected:", test["expected"])
-        print("Actual:", result)
-
-suspicious_tests = [
-    {
-        "name": "Risky executable",
-        "html": '<a href="/downloads/setup.exe">Download</a>',
-        "url": "https://example.com",
-        "feature": "Risky_extensions_In_Html",
-        "expected": 1
-    },
-    {
-        "name": "Shortened URL",
-        "html": '<a href="https://bit.ly/example">Click</a>',
-        "url": "https://example.com",
-        "feature": "presence_of_shorten_url_html",
-        "expected": 1
-    },
-    {
-        "name": "Hidden element",
-        "html": '<div style="display:none">Hidden</div>',
-        "url": "https://example.com",
-        "feature": "hidden_elements_html",
-        "expected": 1
-    },
-    {
-        "name": "External script",
-        "html": '<script src="https://external.com/app.js"></script>',
-        "url": "https://example.com",
-        "feature": "Script_loaded_from_ext_domain",
-        "expected": 1
-    },
-    {
-        "name": "Suspicious JavaScript",
-        "html": '<script>eval("test")</script>',
-        "url": "https://example.com",
-        "feature": "suspicious_inline_js",
-        "expected": 1
-    },
-    {
-        "name": "Normal HTML",
-        "html": "<html><body><p>Hello</p></body></html>",
-        "url": "https://example.com",
-        "feature": None,
-        "expected": 0
-    }
-]
-
-for test in suspicious_tests:
-    result = extract_html_features(test["html"], test["url"])
-
-    if test["feature"] is None:
-        actual = sum(
-            result[feature]
-            for feature in [
-                "Risky_extensions_In_Html",
-                "presence_of_shorten_url_html",
-                "hidden_elements_html",
-                "Script_loaded_from_ext_domain",
-                "suspicious_inline_js"
-            ]
+        passed = all(
+            result.get(feature) == expected
+            for feature, expected in test["expected"].items()
         )
-    else:
+
+        print(f"{test['name']}: {'PASS' if passed else 'FAIL'}")
+
+        if not passed:
+            print("Expected:", test["expected"])
+            print("Actual:", result)
+
+    suspicious_tests = [
+        {
+            "name": "Risky executable",
+            "html": '<a href="/downloads/setup.exe">Download</a>',
+            "url": "https://example.com",
+            "feature": "Risky_extensions_In_Html",
+            "expected": 1
+        },
+        {
+            "name": "Shortened URL",
+            "html": '<a href="https://bit.ly/example">Click</a>',
+            "url": "https://example.com",
+            "feature": "presence_of_shorten_url_html",
+            "expected": 1
+        },
+        {
+            "name": "Hidden element",
+            "html": '<div style="display:none">Hidden</div>',
+            "url": "https://example.com",
+            "feature": "hidden_elements_html",
+            "expected": 1
+        },
+        {
+            "name": "External script",
+            "html": '<script src="https://external.com/app.js"></script>',
+            "url": "https://example.com",
+            "feature": "Script_loaded_from_ext_domain",
+            "expected": 1
+        },
+        {
+            "name": "Suspicious JavaScript",
+            "html": '<script>eval("test")</script>',
+            "url": "https://example.com",
+            "feature": "suspicious_inline_js",
+            "expected": 1
+        },
+        {
+            "name": "Normal HTML",
+            "html": "<html><body><p>Hello</p></body></html>",
+            "url": "https://example.com",
+            "feature": None,
+            "expected": 0
+        }
+    ]
+
+    for test in suspicious_tests:
+        result = extract_html_features(test["html"], test["url"])
+
+        if test["feature"] is None:
+            actual = sum(
+                result[feature]
+                for feature in [
+                    "Risky_extensions_In_Html",
+                    "presence_of_shorten_url_html",
+                    "hidden_elements_html",
+                    "Script_loaded_from_ext_domain",
+                    "suspicious_inline_js"
+                ]
+            )
+        else:
+            actual = result[test["feature"]]
+
+        print(
+            f"{test['name']}: "
+            f"{'PASS' if actual == test['expected'] else 'FAIL'}"
+        )
+
+    branding_tests = [
+        {
+            "name": "Footer mismatch",
+            "html": "<footer>Welcome to another company</footer>",
+            "feature": "is_footer_mismatch",
+            "expected": 1
+        },
+        {
+            "name": "Header mismatch",
+            "html": "<header>Welcome to another company</header>",
+            "feature": "is_header_mismatch",
+            "expected": 1
+        },
+        {
+            "name": "Copyright mismatch",
+            "html": "<footer>Copyright © Another Company</footer>",
+            "feature": "is_copyright_mismatch",
+            "expected": 1
+        },
+        {
+            "name": "Social mismatch",
+            "html": '<a href="https://facebook.com/othercompany">Facebook</a>',
+            "feature": "is_socials_mismatch",
+            "expected": 1
+        },
+        {
+            "name": "Favicon mismatch",
+            "html": '<link rel="icon" href="https://other.com/favicon.ico">',
+            "feature": "is_favicon_mismatch",
+            "expected": 1
+        },
+        {
+            "name": "Missing title",
+            "html": "<html><head></head><body></body></html>",
+            "feature": "has_missing_title",
+            "expected": 1
+        },
+        {
+            "name": "Title mismatch",
+            "html": "<title>Welcome to Other Company</title>",
+            "feature": "title_mismatch_with_domain",
+            "expected": 1
+        },
+        {
+            "name": "Inline event handler",
+            "html": '<button onclick="alert(1)">Click</button>',
+            "feature": "has_inline_event_handlers",
+            "expected": 1
+        },
+        {
+            "name": "External form action",
+            "html": '<form action="https://other.com/login"></form>',
+            "feature": "form_action_external",
+            "expected": 1
+        },
+        {
+            "name": "Matching branding",
+            "html": """
+                <title>Example Login</title>
+                <header>Example</header>
+                <footer>© Example 2026</footer>
+                <link rel="icon" href="/favicon.ico">
+                <form action="/login"></form>
+            """,
+            "feature": "is_copyright_mismatch",
+            "expected": 0
+        }
+    ]
+
+    for test in branding_tests:
+        result = extract_html_features(
+            test["html"],
+            "https://example.com"
+        )
+
         actual = result[test["feature"]]
 
-    print(
-        f"{test['name']}: "
-        f"{'PASS' if actual == test['expected'] else 'FAIL'}"
-    )
+        print(
+            f"{test['name']}: "
+            f"{'PASS' if actual == test['expected'] else 'FAIL'}"
+        )
 
-branding_tests = [
-    {
-        "name": "Footer mismatch",
-        "html": "<footer>Welcome to another company</footer>",
-        "feature": "is_footer_mismatch",
-        "expected": 1
-    },
-    {
-        "name": "Header mismatch",
-        "html": "<header>Welcome to another company</header>",
-        "feature": "is_header_mismatch",
-        "expected": 1
-    },
-    {
-        "name": "Copyright mismatch",
-        "html": "<footer>Copyright © Another Company</footer>",
-        "feature": "is_copyright_mismatch",
-        "expected": 1
-    },
-    {
-        "name": "Social mismatch",
-        "html": '<a href="https://facebook.com/othercompany">Facebook</a>',
-        "feature": "is_socials_mismatch",
-        "expected": 1
-    },
-    {
-        "name": "Favicon mismatch",
-        "html": '<link rel="icon" href="https://other.com/favicon.ico">',
-        "feature": "is_favicon_mismatch",
-        "expected": 1
-    },
-    {
-        "name": "Missing title",
-        "html": "<html><head></head><body></body></html>",
-        "feature": "has_missing_title",
-        "expected": 1
-    },
-    {
-        "name": "Title mismatch",
-        "html": "<title>Welcome to Other Company</title>",
-        "feature": "title_mismatch_with_domain",
-        "expected": 1
-    },
-    {
-        "name": "Inline event handler",
-        "html": '<button onclick="alert(1)">Click</button>',
-        "feature": "has_inline_event_handlers",
-        "expected": 1
-    },
-    {
-        "name": "External form action",
-        "html": '<form action="https://other.com/login"></form>',
-        "feature": "form_action_external",
-        "expected": 1
-    },
-    {
-        "name": "Matching branding",
-        "html": """
-            <title>Example Login</title>
-            <header>Example</header>
-            <footer>© Example 2026</footer>
-            <link rel="icon" href="/favicon.ico">
-            <form action="/login"></form>
-        """,
-        "feature": "is_copyright_mismatch",
-        "expected": 0
-    }
-]
-
-for test in branding_tests:
-    result = extract_html_features(
-        test["html"],
-        "https://example.com"
-    )
-
-    actual = result[test["feature"]]
-
-    print(
-        f"{test['name']}: "
-        f"{'PASS' if actual == test['expected'] else 'FAIL'}"
-    )
-
-    if actual != test["expected"]:
-        print(f"Expected: {test['expected']}, Actual: {actual}")
+        if actual != test["expected"]:
+            print(f"Expected: {test['expected']}, Actual: {actual}")
